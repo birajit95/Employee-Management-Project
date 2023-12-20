@@ -1,0 +1,146 @@
+
+{% extends 'base.html' %}
+{% block title %} Employee Listing {% endblock %}
+{%block content%}
+        <input type="hidden" name="csrfmiddlewaretoken" id="csrfmiddlewaretokenID" value="{{ csrf_token }}">
+
+        <h1>Employee Management</h1>
+        <hr>
+        <h3>Employee Listing</h3>
+            <div class="form-row">
+                <div class="input-group col-md-4 pl-2 mt-2 mb-2">
+                <input type="search" class="form-control rounded" placeholder="Search" 
+                id="search-input"
+                aria-label="Search" aria-describedby="search-addon" />
+                <button type="button" class="btn btn-outline-primary" data-mdb-ripple-init
+                onclick = {fetchEmployeeData(this)}
+                >search</button>
+                </div>
+
+            
+
+              <div class="form-group col-md-3 pl-0 mt-2 mb-2 ml-5">
+                <select id="department" class="form-control"
+                onchange={fetchEmployeeData(this)}
+                >
+                    <option value="">--</option>
+
+                    {% for department in departments%}
+                         <option value="{{department.id}}">{{department.name}}</option>
+                    {%endfor%}
+                </select>
+              </div>
+
+
+              <div class="form-group col-md-3 pl-0 mt-2 mb-2 ml-5">
+                <a href="{% url 'emp_create_view' %}">
+                  <button class="btn btn-primary" onclick={fetchEmployeeData(this)}>
+                    Add New
+                  </button>
+                </a>
+                
+              </div>
+            </div>
+
+
+          <table class="table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">Employee ID</th>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">Designation</th>
+                <th scope="col">Manager</th>
+                <th scope="col">Department</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employee_list_id">
+              
+            </tbody>
+            
+          </table>
+
+{% endblock%}
+
+{% block script %}
+
+let fetchEmployeeData = (e)=>{
+
+    csrfmiddlewaretoken = document.getElementById('csrfmiddlewaretokenID');
+    let csrfToken = csrfmiddlewaretoken.value
+
+    let search = document.getElementById("search-input").value
+
+    let department_id = document.getElementById("department").value
+
+
+    let api = "http://localhost:8000/emp_app/emp-list/?"
+
+    if(search){
+        api += `search=${search}&`
+    }
+    if(department_id){
+        api += `department_id=${department_id}&`
+    }
+    
+
+
+
+    let employee_list = document.getElementById('employee_list_id')
+
+    fetch(api, {
+      method: 'GET',
+      headers: {
+          'X-CSRFToken': csrfToken
+      },
+        })
+      .then(response => {
+        if (response.status !== 200){
+          alert("Error")
+        }
+        return response.json()
+
+      })
+      .then(data => {
+        data = data.data
+        if(data){
+            let innerHTML = ""
+            for(let d of data){
+                innerHTML += `
+                <tr>
+                    <th scope="row">${d.id}</th>
+                    <td>${d.first_name?d.first_name:'--'}</td>
+                    <td>${d.last_name?d.last_name:'--'}</td>
+                    <td>${d.designation_name?d.designation_name:'--'}</td>
+                    <td>${d.manager_name?d.manager_name:'--'}</td>
+                    <td>${d.department_name?d.department_name:'--'}</td>
+
+                    <th scope="row">
+                      <a href="http://localhost:8000/emp_app/emp-details-view/${d.id}">
+                        <button class="btn btn-secondary">
+                          View
+                        </button>
+                      </a>
+                    </th>
+
+                  </tr>
+                `
+            }
+            employee_list.innerHTML = innerHTML
+        }
+      })
+      .catch(error => {
+        alert(error)
+      });
+
+      
+
+      
+
+   
+}
+
+document.addEventListener('DOMContentLoaded', fetchEmployeeData(this))
+
+{% endblock%}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %} Employee Create {% endblock %}
+      {% block content%}
+
+        <input type="hidden" name="csrfmiddlewaretoken" id="csrfmiddlewaretokenID" value="{{ csrf_token }}">
+        <h1>Employee Management</h1>
+        <hr>
+        <h3>Add New Employee</h3>
+
+        <div class="form-row">
+
+        <div class="form-group col-md-6">
+            <label for="first_name">First Name</label>
+            <input type="text" class="form-control" id="first_name" placeholder="First Name">
+        </div>
+
+        <div class="form-group col-md-6">
+            <label for="last_name">Last Name</label>
+            <input type="text" class="form-control" id="last_name" placeholder="Last Name">
+        </div>
+        <div class="form-group col-md-6">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" placeholder="Email">
+        </div>
+          <div class="form-group col-md-6">
+            <label for="contact">Contact</label>
+            <input type="text" class="form-control" id="contact" placeholder="Contact">
+          </div>
+        </div>
+
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input type="textarea" class="form-control" id="address" placeholder="1234 Main St">
+          </div>
+          <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="department">Department</label>
+            <select id="department" class="form-control">
+                {% for department in departments%}
+                    <option value="{{department.id}}">{{department.name}}</option>
+                {%endfor%}
+            </select>
+          </div>
+
+          <div class="form-group col-md-6">
+            <label for="designation">Designation</label>
+            <select id="designation" class="form-control">
+                <{% for designation in designations %}
+                    <option value="{{designation.id}}">{{designation.name}}</option>
+                {%endfor%}
+            </select>
+          </div>
+
+          <div class="form-group col-md-6">
+            <label for="manager">Manager</label>
+            <select id="manager" class="form-control">
+                <{% for manager in managers %}
+                    <option value="{{manager.id}}">{{manager.name}}</option>
+                {%endfor%}
+            </select>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="joining_date">Joining Date</label>
+            <input type="date" class="form-control" id="joining_date">
+          </div>
+
+          <div class="form-group col-md-6">
+            <label for="id_proof">ID Proof</label>
+            <input type="file" class="form-control" id="id_proof" accept="application/pdf">
+          </div>
+        </div>
+        
+        
+        
+        <button class="btn btn-primary" onclick={handleSubmit(this)}>Create</button>
+        {% endblock %}
+
+{% block script %}
+let handleSubmit = (e)=>{
+
+    csrfmiddlewaretoken = document.getElementById('csrfmiddlewaretokenID');
+    let csrfToken = csrfmiddlewaretoken.value
+
+    first_name = document.getElementById('first_name').value;
+    last_name = document.getElementById('last_name').value;
+    email = document.getElementById('email').value;
+    contact = document.getElementById('contact').value;
+    address = document.getElementById('address').value;
+    department = document.getElementById('department').value;
+    designation = document.getElementById('designation').value;
+    manager = document.getElementById('manager').value;
+    joining_date = document.getElementById('joining_date').value;
+
+    id_proof = document.getElementById('id_proof');
+    let files = [...id_proof.files]
+    console.log(files[0])
+
+    var date = new Date(joining_date);
+    let formated_joining_date = date.getFullYear() + '-' +
+    ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
+    ('0' + date.getDate()).slice(-2);
+
+    const formData = new FormData();
+    formData.append("first_name", first_name?first_name:null);
+    formData.append("last_name", last_name?last_name:null);
+    formData.append("address", address?address:null);
+    formData.append("email", email?email:null)
+    formData.append("contact", contact?contact:null)
+    formData.append("department", department?department:null)
+    formData.append("designation", designation?designation:null)
+    formData.append("manager", manager?manager:null)
+    formData.append("joining_date", formated_joining_date?formated_joining_date:null)
+    formData.append("id_proof", files.length>0?files[0]:null)
+
+    let is_error = false
+
+
+    let api = "http://localhost:8000/emp_app/emp-create/"
+
+    fetch(api, {
+      method: 'POST',
+      headers: {
+          'X-CSRFToken': csrfToken
+      },
+      body: formData
+  })
+      .then(response => {
+        return response.json()
+        if (response.status !== 200){
+          is_error = true
+          alert("Error")
+        }
+        else{
+          alert("Data saved successfully")
+        }
+
+      })
+      .then(data => {
+        alert(JSON.stringify(data))
+        if(!is_error){
+          window.location.href = "http://localhost:8000/emp_app/emp-list-view/"
+        }
+      })
+      .catch(error => {
+        alert(error)
+      });
+}
+{% endblock%}

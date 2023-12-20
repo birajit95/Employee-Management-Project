@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %} Employee Details {% endblock %}
+      {% block content%}
+        <input type="hidden" name="csrfmiddlewaretoken" id="csrfmiddlewaretokenID" value="{{ csrf_token }}">
+
+        <h1>Employee Management</h1>
+        <hr>
+        <h3>Employee Details</h3>
+
+        <table class="table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">Employee ID</th>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">Designation</th>
+                <th scope="col">Manager</th>
+                <th scope="col">Department</th>
+                <th scope="col">Gross Sal</th>
+                <th scope="col">Net Sal</th>
+                <th scope="col">Deduction Sal</th>
+                <th scope="col">Joining Date</th>
+              </tr>
+            </thead>
+            <tbody id="employee_data_id">
+              
+            </tbody>
+        </table>
+
+        <hr>
+        <br/>
+        <br/>
+        <br/>
+
+        <h3>Task Records</h3>
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                <th scope="col">Task ID</th>
+                <th scope="col">Task Name</th>
+                <th scope="col">Assigned Date</th>
+                <th scope="col">Task Status</th>
+                <th scope="col">Progress</th>
+                
+                </tr>
+            </thead>
+            <tbody id="tasks_data_id">
+                
+            </tbody>
+        </table>
+
+
+        <hr>
+        <br/>
+        <br/>
+        <br/>
+
+        <h3>Transaction Details</h3>
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                <th scope="col">Transaction ID</th>
+                <th scope="col">Transaction Date</th>
+                <th scope="col">INR</th>
+                </tr>
+            </thead>
+            <tbody id="transact_data_id">
+                
+            </tbody>
+        </table>
+
+
+      {% endblock %}  
+
+
+
+
+{% block script %}
+let fetchEmployeeData = (e)=>{
+
+    csrfmiddlewaretoken = document.getElementById('csrfmiddlewaretokenID');
+    let csrfToken = csrfmiddlewaretoken.value
+
+
+
+
+    let api = "http://localhost:8000/emp_app/emp-details/{{id}}"
+
+    employee_data_id = document.getElementById('employee_data_id');
+    transact_data_id = document.getElementById('transact_data_id');
+    tasks_data_id = document.getElementById('tasks_data_id');
+
+
+    fetch(api, {
+      method: 'GET',
+      headers: {
+          'X-CSRFToken': csrfToken
+      },
+        })
+      .then(response => {
+        if (response.status !== 200){
+          alert("Error")
+        }
+        return response.json()
+
+      })
+      .then(data => {
+        data = data.data
+        if(data){
+            let d = data.employee_data
+            let innerHTML = `
+            <tr>
+                <th scope="row">${d.id}</th>
+                <td>${d.first_name?d.first_name:'--'}</td>
+                <td>${d.last_name?d.last_name:'--'}</td>
+                <td>${d.designation_name?d.designation_name:'--'}</td>
+                <td>${d.manager_name?d.manager_name:'--'}</td>
+                <td>${d.department_name?d.department_name:'--'}</td>
+                <td>${d.gross_amount?d.gross_amount:'--'}</td>
+                <td>${d.net_amount?d.net_amount:'--'}</td>
+                <td>${d.deduction?d.deduction:'--'}</td>
+                <td>${d.joining_date?d.joining_date:'--'}</td>
+
+                </tr>
+            `
+            employee_data_id.innerHTML = innerHTML
+
+
+            let task = data.task_record
+            let taskInnerHTML=`
+            <tr>
+                <td>${task.task_id?task.task_id:'--'}</td>
+                <td>${task.task_name?task.task_name:'--'}</td>
+                <td>${task.created_at?task.created_at:'--'}</td>
+                <td>${task.task_status?task.task_status:'--'}</td>
+                <td>${task.progress_percent?task.progress_percent:'--'}</td>
+
+                </tr>
+            `
+            tasks_data_id.innerHTML = taskInnerHTML
+
+
+            let t = data.transaction_record
+            let transactionDataInnerHTML = `
+            <tr>
+                <td>${t.transaction_id?t.transaction_id:'--'}</td>
+                <td>${t.transaction_date?t.transaction_date:'--'}</td>
+                <td>${t.transaction_amount?t.transaction_amount:'--'}</td>
+                </tr>
+            `
+            transact_data_id.innerHTML = transactionDataInnerHTML
+        }
+
+        
+      })
+      .catch(error => {
+        alert(error)
+      });
+}
+
+document.addEventListener('DOMContentLoaded', fetchEmployeeData(this))
+{% endblock %}  
